@@ -72,13 +72,14 @@ mkdir -p "${NEOVIM_STUDIO_DIR}/includes/"; check
 libclangPath=$(ldconfig -p | grep -o -m 1 "/.\+clang.\+") # Don't check these; permissions errors.
 libclangIncludes=$(find / -path "*clang/*/include")
 
-if [ ! -z "$libclangPath" ] && [ -e "$libclangPath" ] && [ ! -z "$libclangIncludes"] && [ -e "$libclangIncludes"]; then
+if [ ! -z "$libclangPath" ] && [ -e "$libclangPath" ] && [ ! -z "$libclangIncludes" ] && [ -e "$libclangIncludes" ]; then
     echo "let g:deoplete#sources#clang#libclang_path = '${libclangPath}'" > "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
     echo "let g:deoplete#sources#clang#clang_header = '${libclangIncludes}'" >> "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
 else
     echo -e "${RED}Failed to find libclang and its includes:${CLEAR}"
     echo -e "${RED}libclang: ${libclangPath}${CLEAR}"
     echo -e "${RED}includes: ${libclangIncludes}${CLEAR}"
+    exit 1
 fi
 
 cp "${SCRIPT_DIR}/init.vim" "${NEOVIM_STUDIO_DIR}/init.vim"; check
@@ -171,13 +172,14 @@ fi
 
 rustRacerPath="${HOME}/.cargo/bin/racer"
 rustSourcePath="${NEOVIM_STUDIO_DIR}/rust/src/"
-if [ -e "$rustRacerPath" ] && [ -d "$rustSourcePath"]; then
+if [ -e "$rustRacerPath" ] && [ -e "$rustSourcePath" ]; then
     echo "let g:deoplete#sources#rust#racer_binary='${rustRacerPath}'" > "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
     echo "let g:deoplete#sources#rust#rust_source_path='${rustSourcePath}'" >> "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
 else
     echo -e "${RED}Failed to find Racer and Rust source:${CLEAR}"
     echo -e "${RED}racer: ${rustRacerPath}${CLEAR}"
     echo -e "${RED}rust source: ${rustSourcePath}${CLEAR}"
+    exit 1
 fi
 
 
@@ -235,6 +237,7 @@ source "${HOME}/.profile"
 
 
 echo -e "${BLUE}Installing Neovim plugins ...${CLEAR}"
+echo -e "${BLUE}You may have a couple errors here -- don't mind them!${CLEAR}"
 nvim -c "PlugInstall" -c "qa"
 sudo nvim -c "PlugInstall" -c "qa" # Some plugins require sudo privileges to install correctly.
 
