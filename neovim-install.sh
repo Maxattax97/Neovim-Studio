@@ -3,6 +3,7 @@
 # Feature list: https://stackoverflow.com/questions/208193/why-should-i-use-an-ide
 
 NEOVIM_STUDIO_DIR="${HOME}/.neovim-studio"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -37,17 +38,17 @@ CARGO_INSTALLED=$(which cargo)
 
 if [ ! -z "$PACMAN_INSTALLED" ]; then
     echo -e "${GREEN}Found Pacman${CLEAR}"
-    echo -e "${BLUE}Updating ...${CLEAR}"
-    sudo pacman -Syu; check
+    echo -e "${BLUE}Updating system ...${CLEAR}"
+    sudo pacman -Syu --noconfirm; check
 
     echo -e "${BLUE}Installing core packages ...${CLEAR}"
     sudo pacman -S --needed --noconfirm git neovim; check
 
-    echo -e "${BLUE}Installing major dependencies ...${CLEAR}"
+    echo -e "${BLUE}Installing language dependencies and alternative package managers ...${CLEAR}"
     sudo pacman -S --needed --noconfirm nodejs npm rust cargo ruby go python-pip python2-pip dmd ctags clang; check
 
     echo -e "${BLUE}Installing linter packages ...${CLEAR}"
-    sudo pacman -S --needed --noconfirm gawk shellcheck cppcheck mono  crystal dmd stack ghc elixir tidy luarocks nim; check
+    sudo pacman -S --needed --noconfirm gawk shellcheck cppcheck mono crystal dmd stack ghc elixir tidy luarocks nim; check
 
     #echo -e "${BLUE}Installing autocompletion packages ...${CLEAR}"
     #sudo pacman -S --needed --noconfirm ; check
@@ -63,8 +64,30 @@ else
     exit 1
 fi
 
+
+
 echo -e "${BLUE}Setting up the Neovim Studio installation directory in $NEOVIM_STUDIO_DIR ...${CLEAR}"
-mkdir -p "$NEOVIM_STUDIO_DIR"
+mkdir -p "$NEOVIM_STUDIO_DIR"; check
+mkdir -p "${NEOVIM_STUDIO_DIR}/includes/"; check
+libclangPath=$(ldconfig -p | grep -o -m 1 "/.\+clang.\+") # Don't check these; permissions errors.
+libclangIncludes=$(find / -path "*clang/*/include")
+
+if [ ! -z "$libclangPath" ] && [ -e "$libclangPath" ] && [ ! -z "$libclangIncludes"] && [ -e "$libclangIncludes"]; then
+    echo "let g:deoplete#sources#clang#libclang_path = '${libclangPath}'" > "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
+    echo "let g:deoplete#sources#clang#clang_header = '${libclangIncludes}'" >> "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
+else
+    echo -e "${RED}Failed to find libclang and its includes:${CLEAR}"
+    echo -e "${RED}libclang: ${libclangPath}${CLEAR}"
+    echo -e "${RED}includes: ${libclangIncludes}${CLEAR}"
+fi
+
+cp "${SCRIPT_DIR}/init.vim" "${NEOVIM_STUDIO_DIR}/init.vim"; check
+mkdir -p "${HOME}/.config/nvim/"; check
+cd "${HOME}/.config/nvim"; check
+ln -s "${NEOVIM_STUDIO_DIR}/init.vim"; check
+cd "${HOME}"; check
+
+
 
 if [ ! -e "${HOME}/.local/share/nvim/site/autoload/plug.vim" ]; then
     echo -e "${BLUE}Installing Plug ...${CLEAR}"
@@ -73,6 +96,8 @@ if [ ! -e "${HOME}/.local/share/nvim/site/autoload/plug.vim" ]; then
 else
     echo -e "${BLUE}Plug is already installed; skipping ...${CLEAR}"
 fi
+
+
 
 if [ ! -e "/usr/share/fonts/DejaVu Sans Mono Nerd Font Complete.ttf" ]; then
     echo -e "${BLUE}Installing Nerd Font Complete ...${CLEAR}"
@@ -86,38 +111,14 @@ else
     echo -e "${BLUE}Nerd Font Complete is already installed; skipping ...${CLEAR}"
 fi
 
+
+
 # TODO: Fix Haskell and Cabal
 # echo -e "${BLUE}Installing the Haskell toolchain ...${CLEAR}"
 # stack setup; check
 # stack install Cabal; check
 
-# TODO: Dynamically update clang paths.
-# Includes:
-#		find /lib*/ -path "*/lib/clang/*/includes/"
-# LibClang:
-#		find /lib*/ -name "libclang*.so*"
 
-
-
-echo -e "${BLUE}Installing Racer ...${CLEAR}"
-cargo install racer
-code="$?"
-if [ "$code" -eq 101 ]; then
-    echo -e "${BLUE}Racer is already installed; skipping ...${CLEAR}"
-elif [ "$code" -ne 1 ]; then
-    check # 1 is an OK status with Cargo.
-fi
-if [ ! -e "${NEOVIM_STUDIO_DIR}/rust/" ]; then
-    echo -e "${BLUE}Installing Rust documentation ...${CLEAR}"
-    mkdir -p "${NEOVIM_STUDIO_DIR}/rust/"; check
-    git clone --depth=1 https://github.com/rust-lang/rust.git "${NEOVIM_STUDIO_DIR}/rust/"; check
-fi
-
-# TODO: Update rust source code paths.
-
-
-
-# TODO: Symlink/copy the nvimrc to ~/.config/nvim
 
 echo -e "${BLUE}Installing linters from alternative package managers ...${CLEAR}"
 echo -e "${BLUE}Installing from NPM ...${CLEAR}"
@@ -151,6 +152,36 @@ sudo luarocks install luacheck; check
 # stack build; check
 # cd "$HOME"; check
 
+
+
+echo -e "${BLUE}Installing Racer ...${CLEAR}"
+cargo install racer
+code="$?"
+if [ "$code" -eq 101 ]; then
+    echo -e "${BLUE}Racer is already installed; skipping ...${CLEAR}"
+elif [ "$code" -ne 1 ]; then
+    check # 1 is an OK status with Cargo.
+fi
+
+if [ ! -e "${NEOVIM_STUDIO_DIR}/rust/" ]; then
+    echo -e "${BLUE}Installing Rust documentation ...${CLEAR}"
+    mkdir -p "${NEOVIM_STUDIO_DIR}/rust/"; check
+    git clone --depth=1 https://github.com/rust-lang/rust.git "${NEOVIM_STUDIO_DIR}/rust/"; check
+fi
+
+rustRacerPath="${HOME}/.cargo/bin/racer"
+rustSourcePath="${NEOVIM_STUDIO_DIR}/rust/src/"
+if [ -e "$rustRacerPath" ] && [ -d "$rustSourcePath"]; then
+    echo "let g:deoplete#sources#rust#racer_binary='${rustRacerPath}'" > "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
+    echo "let g:deoplete#sources#rust#rust_source_path='${rustSourcePath}'" >> "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
+else
+    echo -e "${RED}Failed to find Racer and Rust source:${CLEAR}"
+    echo -e "${RED}racer: ${rustRacerPath}${CLEAR}"
+    echo -e "${RED}rust source: ${rustSourcePath}${CLEAR}"
+fi
+
+
+
 if [ ! -e "${NEOVIM_STUDIO_DIR}/credo/" ]; then
     echo -e "${BLUE}Building Credo from source ...${CLEAR}"
     mkdir -p "${NEOVIM_STUDIO_DIR}/credo/"; check
@@ -162,6 +193,8 @@ if [ ! -e "${NEOVIM_STUDIO_DIR}/credo/" ]; then
     yes | mix archive.install; check
     cd "$HOME"; check
 fi
+
+
 
 if [ ! -e "${NEOVIM_STUDIO_DIR}/dcd/" ]; then
     echo -e "${BLUE}Building D Completion Daemon from source ...${CLEAR}"
@@ -183,6 +216,10 @@ fi
 cd "$HOME"; check
 
 echo -e "${BLUE}Appending environment variables to ${HOME}/.profile ..."
+echo "if [ -e \"${NEOVIM_STUDIO_DIR}\" ]; then" >> "${HOME}/.profile"
+echo "    export NEOVIM_STUDIO_DIR=\"${NEOVIM_STUDIO_DIR}\"" >> "${HOME}/.profile"
+echo 'fi' >> "${HOME}/.profile"
+echo '' >> "${HOME}/.profile"
 echo 'if [ -e "${HOME}/.cargo/bin" ]; then' >> "${HOME}/.profile"
 echo '    export PATH="${PATH}:${HOME}/.cargo/bin"' >> "${HOME}/.profile"
 echo 'fi' >> "${HOME}/.profile"
@@ -195,9 +232,13 @@ echo '' >> "${HOME}/.profile"
 echo -e "${BLUE}Sourcing the new environment variables ...${CLEAR}"
 source "${HOME}/.profile"
 
+
+
 echo -e "${BLUE}Installing Neovim plugins ...${CLEAR}"
 nvim -c "PlugInstall" -c "qa"
 sudo nvim -c "PlugInstall" -c "qa" # Some plugins require sudo privileges to install correctly.
+
+
 
 echo -e "${GREEN}Installation complete${CLEAR}"
 echo -e "${GREEN}Please set your terminal profile to use \"DejaVuSansMono Nerd Font\" or a similar Powerline font${CLEAR}"
