@@ -20,7 +20,7 @@ set noexpandtab
 "" Features
 set number
 set whichwrap+=<,>,h,l,[,]
-set colorcolumn=125
+set colorcolumn=125 " Comfortable _and_ Github's line length
 set cursorline " Slow
 set relativenumber " Slow
 
@@ -28,7 +28,6 @@ set relativenumber " Slow
 " let $NVIM_TUI_ENABLE_CURSOR_SHAPE=0
 set termguicolors
 set lazyredraw
-" set ttyfast " Enabled by default in Neovim
 " set synmaxcol=125
 " syntax sync minlines=255
 
@@ -36,7 +35,7 @@ set lazyredraw
 autocmd BufRead,BufNewFile *.aatstest set filetype=json
 
 "" Enable python
-let g:python_host_prog = '/usr/bin/python'
+let g:python_host_prog = '/usr/bin/python2'
 let g:python3_host_prog = '/usr/bin/python3'
 
 "" Use system clipboard
@@ -54,7 +53,6 @@ Plug 'vim-airline/vim-airline'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'majutsushi/tagbar'
 Plug 'tpope/vim-fugitive'
-" Plug 'mhinz/vim-signify' " SLOW, BUGGY
 Plug 'scrooloose/nerdcommenter'
 Plug 'sbdchd/neoformat'
 Plug 'bling/vim-bufferline'
@@ -74,8 +72,7 @@ Plug 'tpope/vim-surround'
 Plug 'luochen1990/rainbow'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'shougo/echodoc.vim'
-" Plug 'yggdroot/indentline'
-" Plug 'nathanaelkane/vim-indent-guides' 
+" Plug 'mhinz/vim-signify' " SLOW, BUGGY 
 " Plug 'scrooloose/syntastic'
 " Plug 'valloric/youcompleteme'
 " Plug 'rdnetto/YCM-Generator', {'branch': 'stable'}
@@ -95,7 +92,7 @@ Plug 'shougo/neoinclude.vim'
 Plug 'zchee/deoplete-jedi'
 Plug 'shougo/neco-vim'
 Plug 'artur-shaik/vim-javacomplete2'
-" Plug 'landaire/deoplete-d'
+Plug 'landaire/deoplete-d'
 Plug 'othree/csscomplete.vim'
 Plug 'othree/html5.vim'
 Plug 'othree/xml.vim'
@@ -111,8 +108,10 @@ Plug 'felixhummel/setcolors.vim'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'edkolev/tmuxline.vim'
 Plug 'ryanoasis/vim-devicons'
+Plug 'nathanaelkane/vim-indent-guides'
 
 "" Under Investigation
+" Plug 'idanarye/vim-dutyl' " Requires DMD and DCD
 " Plug 'metakirby5/codi' " INVESTIGATE REPL DEPENDENCIES
 " Plug 'Shougo/denite.nvim'
 " Plug 'bagrat/vim-workspace'
@@ -174,10 +173,17 @@ let g:airline#extensions#tmuxline#enabled = 0 " Airline breaks tmuxline for some
 let g:tmuxline_theme = 'vim_statusline_3'
 let g:tmuxline_preset = 'tmux'
 
+"" Indent Lines
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_start_level = 2
+let g:indent_guides_guide_size = 1
+set ts=4
+set sw=4
+
 """"""""""""
 " NERDTREE "
 """"""""""""
-" This setting causes issues because new windows do not open as expected in afterward.
+"" This setting causes issues because new windows do not open as expected in afterward.
 " let g:nerdtree_tabs_open_on_console_startup = 1
 
 """"""""""""
@@ -200,6 +206,12 @@ let g:deoplete#sources#rust#rust_source_path='/home/bats/src/rust/src'
 
 """ Java
 " autocmd FileType java setlocal omnifunc=javacomplete#Complete
+
+""" D Lang
+"" These have been appended to $PATH
+" let g:deoplete#sources#d#dcd_client_binary = ''
+" let g:deoplete#sources#d#dcd_server_binary = ''
+let g:deoplete#sources#d#dcd_server_autostart = 1
 
 """ Omnifunctions
 let g:deoplete#omni#functions = {}
@@ -225,7 +237,7 @@ set cmdheight=2
 """""""
 " ALE "
 """""""
-" Add an error indicator to Ale
+"" Add an error indicator to Ale
 let g:ale_sign_column_always = 1
 
 function! LinterStatus() abort
@@ -245,7 +257,7 @@ set statusline=%{LinterStatus()}
 
 """""""""""
 " SIGNIFY "
-""""""""""
+"""""""""""
 " accurev
 let g:signify_vcs_list = [ 'git', 'perforce', 'hg', 'svn','bzr', 'cvs', 'darcs', 'fossil', 'hg', 'rcs', 'svn', 'tfs' ]
 let g:signify_realtime = 1
@@ -257,7 +269,7 @@ let g:signify_realtime = 1
 """""""""""""
 " GITGUTTER "
 """""""""""""
-" Set GitGutter's update time to 250ms
+"" Set GitGutter's update time to 250ms
 set updatetime=250
 
 """""""""""""
@@ -279,10 +291,10 @@ inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 """""""""""""""""""""""""
 " SYNTAX / FILE SUPPORT "
 """""""""""""""""""""""""
-" Enable JSDoc syntax highlighting
+"" Enable JSDoc syntax highlighting
 let g:javascript_plugin_jsdoc = 1
 
-" Ale alias for .aatstest
+"" Ale alias for .aatstest
 " let g:ale_linters = {'aatstest': ['jsonlint']}
 " call ale#linter#Define('aatstest', g:aatstest)
 " let ale_linter_aliases = {'json': ['json', 'aatstest']}
@@ -290,7 +302,18 @@ let g:javascript_plugin_jsdoc = 1
 """""""""""""""""""""""""""
 " STARTUP / MISCELLANEOUS "
 """""""""""""""""""""""""""
-" Enable NERDTree and Tagbar, recenter the cursor as well
+"" Strip trailing whitespace for 99% of filetypes
+function! StripTrailingWhitespace()
+    " Filetype blacklist
+    if &ft =~ 'markdown\|whitespace'
+        return
+    endif
+    %s/\s\+$//e
+endfun
+
+autocmd BufWritePre * call StripTrailingWhitespace()
+
+"" Enable NERDTree and Tagbar, recenter the cursor as well
 autocmd vimenter * NERDTree
 autocmd vimenter * wincmd p
 autocmd vimenter * Tagbar
