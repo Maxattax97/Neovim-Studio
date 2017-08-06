@@ -8,21 +8,48 @@ filetype on
 filetype plugin on
 filetype indent on
 
-"" Format
+"" Default formatting when not detected
 set autoindent smartindent softtabstop=4 tabstop=4 shiftwidth=4
-""" Use Tabs
-set noexpandtab
-" set list lcs=tab:\┊\ 
+""" Default to tabs when not detected
+" set noexpandtab
+" set list lcs=tab:\┊\
 " let g:indentLine_char = '┊'
-""" Use Spaces
-" set expandtab
+""" Default to spaces when not detected
+set expandtab
 
 "" Features
 set number
+set backspace=eol,start,indent
 set whichwrap+=<,>,h,l,[,]
 set colorcolumn=125 " Comfortable _and_ Github's line length
 set cursorline " Slow
 set relativenumber " Slow
+set encoding=utf8
+set fileformats=unix,dos,mac
+set completeopt=menuone " Preview mode causes flickering
+
+"" Match braces
+set showmatch
+set matchtime=2
+
+" Keep lines above or below the cursor at all times
+set scrolloff=5
+
+"" Increase command height for echodoc
+set cmdheight=2
+
+"" Wildmode
+set wildmenu
+set wildmode=list:longest,full
+
+"" Hide buffers when abandoned
+set hidden
+
+"" Regex settings
+set ignorecase
+set smartcase
+set hlsearch
+set incsearch
 
 "" Graphical
 " let $NVIM_TUI_ENABLE_CURSOR_SHAPE=0
@@ -32,7 +59,10 @@ set lazyredraw
 " syntax sync minlines=255
 
 "" Additional Filetypes
-autocmd BufRead,BufNewFile *.aatstest set filetype=json
+augroup neovim_studio_filetypes
+    autocmd!
+    autocmd BufRead,BufNewFile *.aatstest set filetype=json
+augroup END
 
 "" Enable python
 let g:python_host_prog = '/usr/bin/python2'
@@ -41,10 +71,16 @@ let g:python3_host_prog = '/usr/bin/python3'
 "" Use system clipboard
 set clipboard+=unnamedplus
 
+"" Add other settings to this file to make Neovim Studio more comfortable
+source $NEOVIM_STUDIO_DIR/includes/general.vim
+
 """"""""""""""""
 " LOAD PLUGINS "
 """"""""""""""""
 call plug#begin('~/.local/share/nvim/plugged')
+
+"" Add additional plugins to this file
+source $NEOVIM_STUDIO_DIR/includes/plugins.vim
 
 "" Modules
 Plug 'w0rp/ale'
@@ -72,7 +108,8 @@ Plug 'tpope/vim-surround'
 Plug 'luochen1990/rainbow'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'shougo/echodoc.vim'
-" Plug 'mhinz/vim-signify' " SLOW, BUGGY 
+Plug 'tpope/vim-sleuth'
+" Plug 'mhinz/vim-signify' " SLOW, BUGGY
 " Plug 'scrooloose/syntastic'
 " Plug 'valloric/youcompleteme'
 " Plug 'rdnetto/YCM-Generator', {'branch': 'stable'}
@@ -177,8 +214,6 @@ let g:tmuxline_preset = 'tmux'
 let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_start_level = 2
 let g:indent_guides_guide_size = 1
-set ts=4
-set sw=4
 
 """"""""""""
 " NERDTREE "
@@ -193,16 +228,18 @@ let g:deoplete#enable_at_startup = 1
 
 "" Deoplete per-autocompleter settings
 """ Clang
-let g:deoplete#sources#clang#libclang_path = '/lib/libclang.so' " '/usr/lib/i386-linux-gnu/libclang-4.0.so.1'
-let g:deoplete#sources#clang#clang_header = '/lib/clang/4.0.0/include' " '/usr/lib/llvm-4.0/lib/clang/4.0.0/include'
+source $NEOVIM_STUDIO_DIR/includes/clang.vim
+" let g:deoplete#sources#clang#libclang_path = '/lib/libclang.so' " '/usr/lib/i386-linux-gnu/libclang-4.0.so.1'
+" let g:deoplete#sources#clang#clang_header = '/lib/clang/4.0.0/include' " '/usr/lib/llvm-4.0/lib/clang/4.0.0/include'
 
 """ TernJS
 let g:tern_request_timeout = 1
 " let g:tern_show_signature_in_pum = '0'
 
 """ Rust
-let g:deoplete#sources#rust#racer_binary='/home/bats/.cargo/bin/racer'
-let g:deoplete#sources#rust#rust_source_path='/home/bats/src/rust/src'
+source $NEOVIM_STUDIO_DIR/includes/rust.vim
+" let g:deoplete#sources#rust#racer_binary=system('echo "${HOME}/.cargo/bin/racer"')
+" let g:deoplete#sources#rust#rust_source_path=system('echo "${NEOVIM_STUDIO_DIR}/rust/src"')
 
 """ Java
 " autocmd FileType java setlocal omnifunc=javacomplete#Complete
@@ -217,22 +254,17 @@ let g:deoplete#sources#d#dcd_server_autostart = 1
 let g:deoplete#omni#functions = {}
 let g:deoplete#omni#functions.java = 'javacomplete#Complete'
 let g:deoplete#omni#functions.javascript = [
-	\ 'tern#Complete',
-	\ 'autocomplete_flow#Complete',
-	\ 'javascriptcomplete#CompleteJS'
+    \ 'tern#Complete',
+    \ 'autocomplete_flow#Complete',
+    \ 'javascriptcomplete#CompleteJS'
 \]
 let g:deoplete#omni#functions.css = 'csscomplete#CompleteCSS'
 let g:deoplete#omni#functions.html = [
-	\ 'htmlcomplete#CompleteTags',
-	\ 'xmlcomplete#CompleteTags'
+    \ 'htmlcomplete#CompleteTags',
+    \ 'xmlcomplete#CompleteTags'
 \]
 let g:deoplete#omni#functions.xml = 'xmlcomplete#CompleteTags'
 let g:deoplete#omni#functions.perl = 'perlomni#PerlComplete'
-
-set completeopt=menuone " Preview mode causes flickering
-
-"" Increase command height for echodoc
-set cmdheight=2
 
 """""""
 " ALE "
@@ -275,18 +307,19 @@ set updatetime=250
 """""""""""""
 " ULTISNIPS "
 """""""""""""
-let g:UltiSnipsSnippetsDir = '~/.config/nvim/my-snippets'
-" let g:UltiSnipsExpandTrigger = "<tab>"
-" let g:UltiSnipsListSnippets = "<c-tab>"
-" let g:UltiSnipsJumpForwardTrigger = "<c-j>"
-" let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
+source $NEOVIM_STUDIO_DIR/includes/ultisnips.vim
+" let g:UltiSnipsSnippetsDir = '~/.config/nvim/my-snippets'
+" let g:UltiSnipsExpandTrigger = '<tab>'
+" let g:UltiSnipsListSnippets = '<c-tab>'
+" let g:UltiSnipsJumpForwardTrigger = '<c-j>'
+" let g:UltiSnipsJumpBackwardTrigger = '<c-k>'
 
 """""""""""""""""""""""""""""""""""""
 " SUPERTAB (AND COMPLETION HOTKEYS) "
 """""""""""""""""""""""""""""""""""""
-let g:SuperTabDefaultCompletionType = "<C-x><C-o>"
-let g:UltiSnipsExpandTrigger = "<C-j>"
-inoremap <expr><Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+let g:SuperTabDefaultCompletionType = '<C-x><C-o>'
+let g:UltiSnipsExpandTrigger = '<C-j>'
+inoremap <expr><Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
 
 """""""""""""""""""""""""
 " SYNTAX / FILE SUPPORT "
@@ -305,15 +338,20 @@ let g:javascript_plugin_jsdoc = 1
 "" Strip trailing whitespace for 99% of filetypes
 function! StripTrailingWhitespace()
     " Filetype blacklist
-    if &ft =~ 'markdown\|whitespace'
+    if &filetype =~ 'markdown\|whitespace'
         return
     endif
     %s/\s\+$//e
 endfun
 
-autocmd BufWritePre * call StripTrailingWhitespace()
+"" Enable NERDTree and Tagbar, recenter the cursor, strip trailing whitespace
+augroup neovim_studio
+    autocmd!
+    autocmd BufWritePre * call StripTrailingWhitespace()
+    autocmd vimenter * NERDTree
+    autocmd vimenter * wincmd p
+    autocmd vimenter * Tagbar
+augroup END
 
-"" Enable NERDTree and Tagbar, recenter the cursor as well
-autocmd vimenter * NERDTree
-autocmd vimenter * wincmd p
-autocmd vimenter * Tagbar
+"" Append any other overwrites or settings here
+source $NEOVIM_STUDIO_DIR/includes/settings.vim

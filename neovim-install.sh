@@ -47,22 +47,22 @@ check()
 
 success()
 {
-    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${@}${CLEAR}"
+    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
 }
 
 log()
 {
-    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${@}${CLEAR}"
+    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
 }
 
 warn()
 {
-    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${@}${CLEAR}"
+    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
 }
 
 error()
 {
-    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${@}${CLEAR}"
+    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
 }
 
 cd "$HOME"; check # These are for safety.
@@ -71,13 +71,18 @@ clear; clear
 log "Setting up the Neovim Studio installation directory in $NEOVIM_STUDIO_DIR ..."
 mkdir -p "$NEOVIM_STUDIO_DIR"; check
 mkdir -p "${NEOVIM_STUDIO_DIR}/includes/"; check
+touch "${NEOVIM_STUDIO_DIR}/includes/general.vim"; check
+touch "${NEOVIM_STUDIO_DIR}/includes/plugins.vim"; check
+mkdir -p "${NEOVIM_STUDIO_DIR}/ulti-snippets"; check
+touch "${NEOVIM_STUDIO_DIR}/includes/ultisnips.vim"; check
+echo "let g:UltiSnipsSnippetsDir = '${NEOVIM_STUDIO_DIR}/ulti-snippets'" > "${NEOVIM_STUDIO_DIR}/includes/ultisnips.vim"; check
+touch "${NEOVIM_STUDIO_DIR}/includes/settings.vim"; check
 mkdir -p "${NEOVIM_STUDIO_DIR}/go/"; check # This will be appended to $GOPATH
 
 log "Checking for the local package manager ..."
 APT_GET_INSTALLED=$(which apt-get 2>/dev/null)
 PACMAN_INSTALLED=$(which pacman 2>/dev/null)
 YUM_INSTALLED=$(which yum 2>/dev/null)
-YAOURT_INSTALLED=$(which yaourt 2>/dev/null)
 
 # TODO: Install Linuxbrew for packages like Swift?
 
@@ -91,11 +96,17 @@ if [ ! -z "$PACMAN_INSTALLED" ]; then
     log "Installing core packages ..."
     sudo pacman -S --needed --noconfirm git neovim gnupg xsel; check
 
+    additional_packages=""
+
+    if [ -z "$(command -v rvm)" ]; then
+        additional_packages="$additional_packages ruby"
+    fi
+
     log "Installing language dependencies and alternative package managers ..."
     sudo pacman -S --needed --noconfirm crystal mono rust cargo go python-pip python2-pip dmd ctags clang \
-        ghc cabal-install happy alex stack erlang elixir jdk8-openjdk perl php ruby; check
+        ghc cabal-install happy alex stack erlang elixir jdk8-openjdk perl php $additional_packages; check
     # TODO: RVM/Ruby is buggy for Antergos. Re-evaluate at a later date.
-        
+
     log "Installing linter packages ..."
     sudo pacman -S --needed --noconfirm gawk shellcheck cppcheck tidy luarocks nim python2-pylint python-pylint; check
 
@@ -144,9 +155,10 @@ elif [ ! -z "$APT_GET_INSTALLED" ]; then
 
     log "Installing Neovim ..."
     sudo apt-get install -y neovim
-    
+
     log "Installing language dependencies and alternative package managers ..."
-    sudo apt-get install -y esl-erlang elixir mono-complete haskell-platform haskell-stack dmd-bin golang python-pip python3-pip libclang1 libclang-dev exuberant-ctags openjdk-8-jdk-headless perl php; check
+    sudo apt-get install -y esl-erlang elixir mono-complete haskell-platform haskell-stack dmd-bin golang python-pip \
+	    python3-pip libclang1 libclang-dev exuberant-ctags openjdk-8-jdk-headless perl php; check
 
     log "Installing linter packages ..."
     sudo apt-get install -y gawk shellcheck cppcheck tidy luarocks nim pylint; check # crystal
@@ -176,18 +188,12 @@ if [ -z "$(which node)" ] && [ -z "$(which nodejs)" ]; then
     log "Installing Node Version Manager (NVM) ..."
     curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash; check
 
-    echo 'if [ -s "${HOME}/.nvm/nvm.sh" ]; then' >> "${TARGET_PROFILE}"
-    echo '    export NVM_DIR="${HOME}/.nvm"' >> "${TARGET_PROFILE}"
-    echo '    source "${NVM_DIR}/nvm.sh"' >> "${TARGET_PROFILE}"
-    echo 'fi' >> "${TARGET_PROFILE}"
-    echo '' >> "${TARGET_PROFILE}"
-
-    source "${TARGET_PROFILE}"; check
+    export NVM_DIR="${HOME}/.nvm"
+    source "${HOME}/.nvm/nvm.sh"; check
     command -v nvm; check
     nvm install lts/boron; check # Install Node.js v6.x LTS
     nvm alias default lts/boron; check
     nvm use lts/boron; check
-    source "${TARGET_PROFILE}"; check
 fi
 
 
@@ -196,6 +202,7 @@ log "Appending environment variables to ${TARGET_PROFILE} ..."
 echo '' >> "${TARGET_PROFILE}"
 echo "if [ -e \"${NEOVIM_STUDIO_DIR}\" ]; then" >> "${TARGET_PROFILE}"
 echo "    export NEOVIM_STUDIO_DIR=\"${NEOVIM_STUDIO_DIR}\"" >> "${TARGET_PROFILE}"
+echo "    export NEOVIM_STUDIO_PROFILE_SOURCED=1"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
@@ -204,8 +211,16 @@ echo '    export PATH="${PATH}:${HOME}/.cargo/bin"' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
+echo 'if [ -s "${HOME}/.nvm/nvm.sh" ]; then' >> "${TARGET_PROFILE}"
+echo '    export NVM_DIR="${HOME}/.nvm"' >> "${TARGET_PROFILE}"
+echo '    source "${NVM_DIR}/nvm.sh"' >> "${TARGET_PROFILE}"
+echo '    source "${NVM_DIR}/bash_completion"' >> "${TARGET_PROFILE}"
+echo 'fi' >> "${TARGET_PROFILE}"
+echo '' >> "${TARGET_PROFILE}"
+
 echo 'if [ -e "${HOME}/.rvm/scripts/rvm" ]; then' >> "${TARGET_PROFILE}"
 echo '    source ${HOME}/.rvm/scripts/rvm' >> "${TARGET_PROFILE}"
+echo '    export PATH=${PATH}:${HOME}/.rvm/bin' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
@@ -235,6 +250,14 @@ echo "    export PATH=${PATH}:\"${NEOVIM_STUDIO_DIR}/dcd/bin\"" >> "${TARGET_PRO
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
+if [ "${TARGET_PROFILE}" != "${HOME}/.bashrc" ]; then
+    echo '' >> "${HOME}/.bashrc"
+    echo 'if [ -z "${NEOVIM_STUDIO_PROFILE_SOURCED}" ]; then' >> "${HOME}/.bashrc"
+    echo "    source \"${TARGET_PROFILE}\"" >> "${HOME}/.bashrc"
+    echo 'fi' >> "${HOME}/.bashrc"
+    echo '' >> "${HOME}/.bashrc"
+fi
+
 log "Sourcing the new environment variables ..."
 source "${TARGET_PROFILE}"
 
@@ -262,7 +285,14 @@ if [ ! -e "${NEOVIM_STUDIO_DIR}/init.vim" ]; then
     ln -s "${NEOVIM_STUDIO_DIR}/init.vim"; check
     cd "${HOME}"; check
 else
-    log "A Neovim configuration was already found in ${NEOVIM_STUDIO_DIR}/init.vim; skipping"
+    log "A Neovim configuration was already found in ${NEOVIM_STUDIO_DIR}/init.vim; backing up and writing a new copy ..."
+    mv "${NEOVIM_STUDIO_DIR}/init.vim" "${NEOVIM_STUDIO_DIR}/init.vim.bak"; check
+    cp "${SCRIPT_DIR}/init.vim" "${NEOVIM_STUDIO_DIR}/init.vim"; check
+    mkdir -p "${HOME}/.config/nvim/"; check
+    cd "${HOME}/.config/nvim"; check
+    rm "init.vim" 2>/dev/null
+    ln -s "${NEOVIM_STUDIO_DIR}/init.vim"; check
+    cd "${HOME}"; check
 fi
 
 
