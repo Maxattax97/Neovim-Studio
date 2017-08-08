@@ -83,6 +83,7 @@ call plug#begin('~/.local/share/nvim/plugged')
 source $NEOVIM_STUDIO_DIR/includes/plugins.vim
 
 "" Modules
+"" Eclim was manually installed.
 Plug 'w0rp/ale'
 Plug 'scrooloose/nerdtree'
 Plug 'vim-airline/vim-airline'
@@ -109,16 +110,14 @@ Plug 'luochen1990/rainbow'
 Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'shougo/echodoc.vim'
 Plug 'tpope/vim-sleuth'
-" Plug 'mhinz/vim-signify' " SLOW, BUGGY
-" Plug 'scrooloose/syntastic'
-" Plug 'valloric/youcompleteme'
-" Plug 'rdnetto/YCM-Generator', {'branch': 'stable'}
+Plug 'jiangmiao/auto-pairs'
+" Plug 'mhinz/vim-signify' " Disabled, might re-enable later.
 
 "" Syntax / File Support
 Plug 'sheerun/vim-polyglot'
 Plug 'vim-perl/vim-perl', { 'for': 'perl', 'do': 'make clean carp dancer highlight-all-pragmas moose test-more try-tiny' }
 " Plug 'elzr/vim-json'
-" Plug 'pangloss/vim-javascript'
+" Plug 'pangloss/vim-javascript'4
 
 "" Autocompletion
 Plug 'zchee/deoplete-clang'
@@ -128,7 +127,7 @@ Plug 'sebastianmarkow/deoplete-rust'
 Plug 'shougo/neoinclude.vim'
 Plug 'zchee/deoplete-jedi'
 Plug 'shougo/neco-vim'
-Plug 'artur-shaik/vim-javacomplete2'
+" Plug 'artur-shaik/vim-javacomplete2'
 Plug 'landaire/deoplete-d'
 Plug 'othree/csscomplete.vim'
 Plug 'othree/html5.vim'
@@ -225,6 +224,7 @@ let g:indent_guides_guide_size = 1
 " DEOPLETE "
 """"""""""""
 let g:deoplete#enable_at_startup = 1
+" let g:deoplete#enable_refresh_always = 1
 
 "" Deoplete per-autocompleter settings
 """ Clang
@@ -252,7 +252,10 @@ let g:deoplete#sources#d#dcd_server_autostart = 1
 
 """ Omnifunctions
 let g:deoplete#omni#functions = {}
-let g:deoplete#omni#functions.java = 'javacomplete#Complete'
+
+let g:EclimCompletionMethod = 'omnifunc'
+let g:deoplete#omni#functions.java = 'eclim#java#complete#CodeComplete'
+
 let g:deoplete#omni#functions.javascript = [
     \ 'tern#Complete',
     \ 'autocomplete_flow#Complete',
@@ -320,6 +323,7 @@ source $NEOVIM_STUDIO_DIR/includes/ultisnips.vim
 let g:SuperTabDefaultCompletionType = '<C-x><C-o>'
 let g:UltiSnipsExpandTrigger = '<C-j>'
 inoremap <expr><Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
+
 
 """""""""""""""""""""""""
 " SYNTAX / FILE SUPPORT "

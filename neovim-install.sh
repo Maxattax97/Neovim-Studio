@@ -4,7 +4,7 @@
 
 NEOVIM_STUDIO_DIR="${HOME}/.neovim-studio"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TARGET_PROFILE="${HOME}/.profile" # If .profile is used, a logout will be required.
+TARGET_PROFILE="${NEOVIM_STUDIO_DIR}/neovim_studio_profile" # If .profile is used, a logout will be required.
 
 RED='\e[0;31m'
 LIGHT_RED='\e[1;31m'
@@ -79,10 +79,18 @@ echo "let g:UltiSnipsSnippetsDir = '${NEOVIM_STUDIO_DIR}/ulti-snippets'" > "${NE
 touch "${NEOVIM_STUDIO_DIR}/includes/settings.vim"; check
 mkdir -p "${NEOVIM_STUDIO_DIR}/go/"; check # This will be appended to $GOPATH
 
+log "Collecting system information ..."
+THREADS="$(grep -c '^processor' /proc/cpuinfo)"
+ARCHITECTURE="64"
+if [ -z "$(uname --machine | grep "64")" ]; then
+    ARCHITECTURE="32"
+fi
+log "Detected a ${ARCHITECTURE}-bit system with ${CORES} threads"
+
 log "Checking for the local package manager ..."
-APT_GET_INSTALLED=$(which apt-get 2>/dev/null)
-PACMAN_INSTALLED=$(which pacman 2>/dev/null)
-YUM_INSTALLED=$(which yum 2>/dev/null)
+APT_GET_INSTALLED="$(which apt-get 2>/dev/null)"
+PACMAN_INSTALLED="$(which pacman 2>/dev/null)"
+YUM_INSTALLED="$(which yum 2>/dev/null)"
 
 # TODO: Install Linuxbrew for packages like Swift?
 
@@ -94,7 +102,7 @@ if [ ! -z "$PACMAN_INSTALLED" ]; then
 
     # TODO: Combine all of these into one for faster speed.
     log "Installing core packages ..."
-    sudo pacman -S --needed --noconfirm git neovim gnupg xsel; check
+    sudo pacman -S --needed --noconfirm git neovim gnupg xsel xvfb; check
 
     additional_packages=""
 
@@ -121,7 +129,7 @@ elif [ ! -z "$APT_GET_INSTALLED" ]; then
     sudo apt-get upgrade -y; check
 
     log "Installing core packages ..."
-    sudo apt-get install -y git git-core build-essential curl wget gnupg2 xsel; check # zlib1g-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev
+    sudo apt-get install -y git git-core build-essential curl wget gnupg2 xsel xvfb; check # zlib1g-dev libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev
 
     log "Adding PPA's and latest stable versions ..."
     sudo add-apt-repository ppa:neovim-ppa/unstable -y # We'll have to use unstable to hit every platform.
@@ -158,7 +166,7 @@ elif [ ! -z "$APT_GET_INSTALLED" ]; then
 
     log "Installing language dependencies and alternative package managers ..."
     sudo apt-get install -y esl-erlang elixir mono-complete haskell-platform haskell-stack dmd-bin golang python-pip \
-	    python3-pip libclang1 libclang-dev exuberant-ctags openjdk-8-jdk-headless perl php; check
+	    python3-pip libclang1 libclang-dev exuberant-ctags openjdk-8-jdk perl php; check
 
     log "Installing linter packages ..."
     sudo apt-get install -y gawk shellcheck cppcheck tidy luarocks nim pylint; check # crystal
@@ -198,11 +206,35 @@ fi
 
 
 
+if [ ! -e "${NEOVIM_STUDIO_DIR}/eclim/" ]; then
+    log "Installing Eclim ..."
+    mkdir -p "${NEOVIM_STUDIO_DIR}/eclim/"; check
+    if [ "$ARCHITECTURE" == "64" ]; then
+        wget -O "${NEOVIM_STUDIO_DIR}/eclim/eclipse.tar.gz" http://mirror.math.princeton.edu/pub/eclipse//technology/epp/downloads/release/oxygen/R/eclipse-java-oxygen-R-linux-gtk-x86_64.tar.gz; check
+    else
+        wget -O "${NEOVIM_STUDIO_DIR}/eclim/eclipse.tar.gz" http://mirror.math.princeton.edu/pub/eclipse//technology/epp/downloads/release/oxygen/R/eclipse-java-oxygen-R-linux-gtk.tar.gz; check
+    fi
+    tar -zxf "${NEOVIM_STUDIO_DIR}/eclim/eclipse.tar.gz" -C "${NEOVIM_STUDIO_DIR}/eclim/"; check
+    wget -O "${NEOVIM_STUDIO_DIR}/eclim/eclim.jar" https://github.com/ervandew/eclim/releases/download/2.7.0/eclim_2.7.0.jar; check
+    java -Dvim.files=$HOME/.config/nvim -Declipse.home=$NEOVIM_STUDIO_DIR/eclim/eclipse -jar $NEOVIM_STUDIO_DIR/eclim/eclim.jar install; check
+else
+    log "Eclim is already installed; skipping ..."
+fi
+
+
+
 log "Appending environment variables to ${TARGET_PROFILE} ..."
-echo '' >> "${TARGET_PROFILE}"
+# Note that this first line clears the file.
+if [ "${TARGET_PROFILE}" != "${HOME}/.bashrc" ] && [ "${TARGET_PROFILE}" != "${HOME}/.profile" ]; then
+    echo "if [ ! -z \"\${NEOVIM_STUDIO_PROFILE_SOURCED}\" ]; then" > "${TARGET_PROFILE}"
+    echo "    return 0" >> "${TARGET_PROFILE}"
+    echo 'fi' >> "${TARGET_PROFILE}"
+    echo '' >> "${TARGET_PROFILE}"
+fi
+
 echo "if [ -e \"${NEOVIM_STUDIO_DIR}\" ]; then" >> "${TARGET_PROFILE}"
 echo "    export NEOVIM_STUDIO_DIR=\"${NEOVIM_STUDIO_DIR}\"" >> "${TARGET_PROFILE}"
-echo "    export NEOVIM_STUDIO_PROFILE_SOURCED=1"
+echo "    export NEOVIM_STUDIO_PROFILE_SOURCED=1" >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
@@ -211,21 +243,21 @@ echo '    export PATH="${PATH}:${HOME}/.cargo/bin"' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
-echo 'if [ -s "${HOME}/.nvm/nvm.sh" ]; then' >> "${TARGET_PROFILE}"
+echo 'if [ -s "${HOME}/.nvm/nvm.sh" ] && [ -z "$(command -v nvm)" ]; then' >> "${TARGET_PROFILE}"
 echo '    export NVM_DIR="${HOME}/.nvm"' >> "${TARGET_PROFILE}"
 echo '    source "${NVM_DIR}/nvm.sh"' >> "${TARGET_PROFILE}"
 echo '    source "${NVM_DIR}/bash_completion"' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
-echo 'if [ -e "${HOME}/.rvm/scripts/rvm" ]; then' >> "${TARGET_PROFILE}"
+echo 'if [ -e "${HOME}/.rvm/scripts/rvm" ] && [ -z "$(command -v rvm)" ]; then' >> "${TARGET_PROFILE}"
 echo '    source ${HOME}/.rvm/scripts/rvm' >> "${TARGET_PROFILE}"
 echo '    export PATH=${PATH}:${HOME}/.rvm/bin' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
 # With RVM, is this necessary?
-echo 'if [ -e "${HOME}/.gem/ruby/2.4.0/bin" ]; then' >> "${TARGET_PROFILE}"
+echo 'if [ -e "${HOME}/.gem/ruby/2.4.0/bin" ] && [ -z "$(command -v gem)" ]; then' >> "${TARGET_PROFILE}"
 echo '    export PATH="${PATH}:${HOME}/.gem/ruby/2.4.0/bin"' >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
@@ -246,16 +278,28 @@ echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
 echo "if [ -e \"${NEOVIM_STUDIO_DIR}/dcd/bin\" ]; then" >> "${TARGET_PROFILE}"
-echo "    export PATH=${PATH}:\"${NEOVIM_STUDIO_DIR}/dcd/bin\"" >> "${TARGET_PROFILE}"
+echo "    export PATH=\"\${PATH}:${NEOVIM_STUDIO_DIR}/dcd/bin\"" >> "${TARGET_PROFILE}"
 echo 'fi' >> "${TARGET_PROFILE}"
 echo '' >> "${TARGET_PROFILE}"
 
 if [ "${TARGET_PROFILE}" != "${HOME}/.bashrc" ]; then
     echo '' >> "${HOME}/.bashrc"
-    echo 'if [ -z "${NEOVIM_STUDIO_PROFILE_SOURCED}" ]; then' >> "${HOME}/.bashrc"
+    echo '# {{START_NEOVIM_STUDIO_TOKEN}}' >> "${HOME}/.bashrc"
+    echo "if [ -z \"\${NEOVIM_STUDIO_PROFILE_SOURCED}\" ] && [ -e \"${TARGET_PROFILE}\" ]; then" >> "${HOME}/.bashrc"
     echo "    source \"${TARGET_PROFILE}\"" >> "${HOME}/.bashrc"
     echo 'fi' >> "${HOME}/.bashrc"
+    echo '# {{END_NEOVIM_STUDIO_TOKEN}}' >> "${HOME}/.bashrc"
     echo '' >> "${HOME}/.bashrc"
+fi
+
+if [ "${TARGET_PROFILE}" != "${HOME}/.profile" ]; then
+    echo '' >> "${HOME}/.profile"
+    echo '# {{START_NEOVIM_STUDIO_TOKEN}}' >> "${HOME}/.profile"
+    echo "if [ -z \"\${NEOVIM_STUDIO_PROFILE_SOURCED}\" ] && [ -e \"${TARGET_PROFILE}\" ]; then" >> "${HOME}/.profile"
+    echo "    source \"${TARGET_PROFILE}\"" >> "${HOME}/.profile"
+    echo 'fi' >> "${HOME}/.profile"
+    echo '# {{END_NEOVIM_STUDIO_TOKEN}}' >> "${HOME}/.profile"
+    echo '' >> "${HOME}/.profile"
 fi
 
 log "Sourcing the new environment variables ..."
@@ -449,7 +493,7 @@ cd "$HOME"; check
 log "Installing Neovim plugins ..."
 log "You may have a couple errors here -- don't mind them!"
 nvim -c "PlugInstall" -c "qa"
-sudo nvim -c "PlugInstall" -c "qa" # Some plugins require sudo privileges to install correctly.
+sudo -E nvim -c "PlugInstall" -c "qa" # Some plugins require sudo privileges to install correctly.
 
 
 
@@ -457,6 +501,6 @@ success "Installation complete"
 success "A couple of things to do before starting:"
 success "1. You use a well-developed terminal emulator like Konsole for fully-functioning themes"
 success "2. Set your terminal emulator's profile to use \"DejaVuSansMono Nerd Font\" or a similar Powerline font"
-success "${BLINK}3. You should REBOOT so that variables in ${TARGET_PROFILE} will take effect globally"
+success "3. To use Neovim Studio in this shell, execute \`source ${TARGET_PROFILE}\`"
 echo ""
 success "When those are taken care of, execute \`nvim\` to begin an epic experience"

@@ -27,7 +27,7 @@ text-editing task, and be something that I could share with my colleagues.
 | Function tagging                      | X | X | X | X |
 | Project Browser                       | X | X | X | X |
 | Version Control Integration           | X |  |  | X |
-| "Typical" Boot Time                   | 1s | 80s | 5s | 5s |
+| "Typical" Boot Time                   | 300ms | 80s | 5s | 5s |
 | Functions in Headless Environments    | X |  |  |  |
 | Integrated Terminal                   | X |  | X |  |
 | Total Installation Size               | 4.2G | 30G | 20G | 5G |
