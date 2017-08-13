@@ -26,7 +26,7 @@ set cursorline " Slow
 set relativenumber " Slow
 set encoding=utf8
 set fileformats=unix,dos,mac
-set completeopt=menuone " Preview mode causes flickering
+set completeopt=longest,menuone " Preview mode causes flickering
 
 "" Match braces
 set showmatch
@@ -94,7 +94,7 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'sbdchd/neoformat'
 Plug 'bling/vim-bufferline'
 Plug 'farmergreg/vim-lastplace'
-Plug 'ctrlpvim/ctrlp.vim'
+
 Plug 'sirver/ultisnips' " REQUIRES SOME FURTHER CONFIGURATION & SNIPPETS
 Plug 'honza/vim-snippets'
 Plug 'ervandew/supertab'
@@ -111,13 +111,16 @@ Plug 'jeffkreeftmeijer/vim-numbertoggle'
 Plug 'shougo/echodoc.vim'
 Plug 'tpope/vim-sleuth'
 Plug 'jiangmiao/auto-pairs'
+Plug 'tpope/vim-unimpaired'
+Plug 'shougo/denite.nvim'
+" Plug 'ctrlpvim/ctrlp.vim'
 " Plug 'mhinz/vim-signify' " Disabled, might re-enable later.
 
 "" Syntax / File Support
 Plug 'sheerun/vim-polyglot'
 Plug 'vim-perl/vim-perl', { 'for': 'perl', 'do': 'make clean carp dancer highlight-all-pragmas moose test-more try-tiny' }
 " Plug 'elzr/vim-json'
-" Plug 'pangloss/vim-javascript'4
+" Plug 'pangloss/vim-javascript'
 
 "" Autocompletion
 Plug 'zchee/deoplete-clang'
@@ -127,12 +130,12 @@ Plug 'sebastianmarkow/deoplete-rust'
 Plug 'shougo/neoinclude.vim'
 Plug 'zchee/deoplete-jedi'
 Plug 'shougo/neco-vim'
-" Plug 'artur-shaik/vim-javacomplete2'
 Plug 'landaire/deoplete-d'
 Plug 'othree/csscomplete.vim'
 Plug 'othree/html5.vim'
 Plug 'othree/xml.vim'
 Plug 'c9s/perlomni.vim'
+" Plug 'artur-shaik/vim-javacomplete2'
 " Plug 'tweekmonster/deoplete-clang2'
 
 "" Themes
@@ -147,6 +150,7 @@ Plug 'ryanoasis/vim-devicons'
 Plug 'nathanaelkane/vim-indent-guides'
 
 "" Under Investigation
+" Plug ''
 " Plug 'idanarye/vim-dutyl' " Requires DMD and DCD
 " Plug 'metakirby5/codi' " INVESTIGATE REPL DEPENDENCIES
 " Plug 'Shougo/denite.nvim'
@@ -182,6 +186,11 @@ set guifont=DejaVuSansMono\ Nerd\ Font\ 9
 
 "" Colorscheme
 colorscheme solarized8_dark
+
+"" This will repair colors in Tmux.
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+
 " colorscheme OceanicNext
 " colorscheme minimalist
 " hi Normal guibg=NONE ctermbg=NONE
@@ -224,7 +233,6 @@ let g:indent_guides_guide_size = 1
 " DEOPLETE "
 """"""""""""
 let g:deoplete#enable_at_startup = 1
-" let g:deoplete#enable_refresh_always = 1
 
 "" Deoplete per-autocompleter settings
 """ Clang
@@ -324,7 +332,6 @@ let g:SuperTabDefaultCompletionType = '<C-x><C-o>'
 let g:UltiSnipsExpandTrigger = '<C-j>'
 inoremap <expr><Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
 
-
 """""""""""""""""""""""""
 " SYNTAX / FILE SUPPORT "
 """""""""""""""""""""""""
@@ -339,6 +346,8 @@ let g:javascript_plugin_jsdoc = 1
 """""""""""""""""""""""""""
 " STARTUP / MISCELLANEOUS "
 """""""""""""""""""""""""""
+noremap <C-p> :Denite buffer file_rec tag<CR>
+
 "" Strip trailing whitespace for 99% of filetypes
 function! StripTrailingWhitespace()
     " Filetype blacklist

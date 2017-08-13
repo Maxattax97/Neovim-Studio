@@ -26,57 +26,15 @@ CLEAR='\e[0m'
 BLINK='\e[5m'
 BOLD='\e[1m'
 
-# Running as superuser will not install into user's home.
-#if ! [ "$(id -u)" = 0 ]; then
-#    error "Superuser permissions are required to run this script"
-#    exit 1
-#fi
-
-checkCount=0
-checkTotal=100
-
-check()
-{
-    code="$?"
-    checkCount=$((checkCount+=1))
-    if [ "$code" -ne 0 ]; then
-        error "Aborting: previous command failed (code ${code})"
-        exit 1
-    fi
-}
-
-success()
-{
-    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-log()
-{
-    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-warn()
-{
-    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-error()
-{
-    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
 cd "$HOME"; check # These are for safety.
 clear; clear
 
 log "Setting up the Neovim Studio installation directory in $NEOVIM_STUDIO_DIR ..."
 mkdir -p "$NEOVIM_STUDIO_DIR"; check
-mkdir -p "${NEOVIM_STUDIO_DIR}/includes/"; check
-touch "${NEOVIM_STUDIO_DIR}/includes/general.vim"; check
-touch "${NEOVIM_STUDIO_DIR}/includes/plugins.vim"; check
+cp -r "${SCRIPT_DIR}/includes/" "$NEOVIM_STUDIO_DIR"; check
 mkdir -p "${NEOVIM_STUDIO_DIR}/ulti-snippets"; check
-touch "${NEOVIM_STUDIO_DIR}/includes/ultisnips.vim"; check
-echo "let g:UltiSnipsSnippetsDir = '${NEOVIM_STUDIO_DIR}/ulti-snippets'" > "${NEOVIM_STUDIO_DIR}/includes/ultisnips.vim"; check
-touch "${NEOVIM_STUDIO_DIR}/includes/settings.vim"; check
+# This will also clear the plugin_paths.vim file.
+echo "let g:UltiSnipsSnippetsDir = '${NEOVIM_STUDIO_DIR}/ulti-snippets'" > "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
 mkdir -p "${NEOVIM_STUDIO_DIR}/go/"; check # This will be appended to $GOPATH
 
 log "Collecting system information ..."
@@ -85,7 +43,7 @@ ARCHITECTURE="64"
 if [ -z "$(uname --machine | grep "64")" ]; then
     ARCHITECTURE="32"
 fi
-log "Detected a ${ARCHITECTURE}-bit system with ${CORES} threads"
+log "Detected a ${ARCHITECTURE}-bit system with ${THREADS} threads"
 
 log "Checking for the local package manager ..."
 APT_GET_INSTALLED="$(which apt-get 2>/dev/null)"
@@ -93,6 +51,7 @@ PACMAN_INSTALLED="$(which pacman 2>/dev/null)"
 YUM_INSTALLED="$(which yum 2>/dev/null)"
 
 # TODO: Install Linuxbrew for packages like Swift?
+# TODO: Replace RVM with RBEnv.
 
 if [ ! -z "$PACMAN_INSTALLED" ]; then
     log "Found Pacman"
@@ -312,8 +271,8 @@ libclangPath=$(ldconfig -p | grep -o -m 1 "/.\+clang.\+") # Don't check these; p
 libclangIncludes=$(find / -path "*clang/*/include" 2>/dev/null | grep -m1 "clang")
 
 if [ ! -z "$libclangPath" ] && [ -e "$libclangPath" ] && [ ! -z "$libclangIncludes" ] && [ -e "$libclangIncludes" ]; then
-    echo "let g:deoplete#sources#clang#libclang_path = '${libclangPath}'" > "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
-    echo "let g:deoplete#sources#clang#clang_header = '${libclangIncludes}'" >> "${NEOVIM_STUDIO_DIR}/includes/clang.vim"; check
+    echo "let g:deoplete#sources#clang#libclang_path = '${libclangPath}'" >> "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
+    echo "let g:deoplete#sources#clang#clang_header = '${libclangIncludes}'" >> "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
 else
     error "Failed to find libclang and its includes:"
     error "libclang: ${libclangPath}"
@@ -444,8 +403,8 @@ fi
 rustRacerPath="${HOME}/.cargo/bin/racer"
 rustSourcePath="${NEOVIM_STUDIO_DIR}/rust/src/"
 if [ -e "$rustRacerPath" ] && [ -e "$rustSourcePath" ]; then
-    echo "let g:deoplete#sources#rust#racer_binary='${rustRacerPath}'" > "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
-    echo "let g:deoplete#sources#rust#rust_source_path='${rustSourcePath}'" >> "${NEOVIM_STUDIO_DIR}/includes/rust.vim"; check
+    echo "let g:deoplete#sources#rust#racer_binary='${rustRacerPath}'" >> "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
+    echo "let g:deoplete#sources#rust#rust_source_path='${rustSourcePath}'" >> "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
 else
     error "Failed to find Racer and Rust source:"
     error "racer: ${rustRacerPath}"
@@ -504,3 +463,77 @@ success "2. Set your terminal emulator's profile to use \"DejaVuSansMono Nerd Fo
 success "3. To use Neovim Studio in this shell, execute \`source ${TARGET_PROFILE}\`"
 echo ""
 success "When those are taken care of, execute \`nvim\` to begin an epic experience"
+
+
+
+checkCount=0
+checkTotal=100
+
+check()
+{
+    code="$?"
+    checkCount=$((checkCount+=1))
+    if [ "$code" -ne 0 ]; then
+        error "Aborting: previous command failed (code ${code})"
+        exit 1
+    fi
+}
+
+success()
+{
+    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+log()
+{
+    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+warn()
+{
+    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+error()
+{
+    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+writeInitVimFile()
+{
+cat << EOF > "$NEOVIM_STUDIO_DIR/init.vim"
+if &compatible
+    set nocompatible
+endif
+
+set runtimepath+=$NEOVIM_STUDIO_DIR/dein/repos/github.com/Shougo/dein.vim
+
+if dein#load_state($NEOVIM_STUDIO_DIR . '/dein/')
+    call dein#begin($NEOVIM_STUDIO_DIR . '/dein/')
+    call dein#add($NEOVIM_STUDIO_DIR . '/dein/')
+
+    call dein#add('deoplete.nvim')
+
+    source $NEOVIM_STUDIO_DIR/includes/plugins.vim
+    source $NEOVIM_STUDIO_DIR/includes/custom_plugins.vim
+
+    call dein#end()
+    call dein#save_state()
+endif
+
+filetype plugin indent on
+syntax enable
+
+source $NEOVIM_STUDIO_DIR/includes/general.vim
+source $NEOVIM_STUDIO_DIR/includes/plugin_paths.vim
+source $NEOVIM_STUDIO_DIR/includes/plugin_settings.vim
+source $NEOVIM_STUDIO_DIR/includes/themes.vim
+source $NEOVIM_STUDIO_DIR/includes/autocommands.vim
+source $NEOVIM_STUDIO_DIR/includes/custom_settings.vim
+
+"" Automatically install new plugins.
+if dein#check_install()
+    call dein#install()
+endif
+EOF
+}

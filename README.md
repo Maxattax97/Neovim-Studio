@@ -1,4 +1,4 @@
-# __Neovim Studio__
+# __Neovim Studio__ :black_nib:
 
 Neovim Studio is a project that seeks to turn the tried-and-true, high-efficiency text editor into a full blown IDE that
 competes with the capabilities of modern IDE's like Visual Studio without the hassle of setup and
@@ -24,12 +24,7 @@ text-editing task, and be something that I could share with my colleagues.
 | -------:|:-------------:|:-------------:|:-------:|:--------:|
 | Auto-completion Support (# Languages) | 11 | 7 | 10 | 17 |
 | Linting Support (# Languages)         | 50 | 7 | 10 | 17 |
-| Function tagging                      | X | X | X | X |
-| Project Browser                       | X | X | X | X |
-| Version Control Integration           | X |  |  | X |
 | "Typical" Boot Time                   | 300ms | 80s | 5s | 5s |
-| Functions in Headless Environments    | X |  |  |  |
-| Integrated Terminal                   | X |  | X |  |
 | Total Installation Size               | 4.2G | 30G | 20G | 5G |
 
 If any of these values are dishonest or unreasonable, please make a pull request. If there's something we're lacking, then
@@ -37,7 +32,26 @@ we have a goal to chase after.
 
 ## Detailed Feature List
 
-### Languages with Auto-Completion Support
+### Notable Features
+
++ Project Browser
++ Function Tagging
++ Version Control Integration (Git)
++ Functions in headless and/or low-performance environments
++ Integrated Terminal
++ Supports niche/uncommon languages
++ Blazing fast load times
++ Fuzzy finder *
++ Auto-completable snippets
++ Integrated database interface *
++ Strong Regex integration
++ Lifetime supply of macros
++ Mouse discouraged
++ Backed by 9,700 + 23,600 stars on Github
++ Free as in speech _and_ lunch
++ __Highly__ configurable
+
+### Auto-Completion Support
 
 + C
 + C++
@@ -52,7 +66,10 @@ we have a goal to chase after.
 + XML
 
 ### Linting Support
+
 Most of the linting in Neovim Studio comes from [Asynchronous Lint Engine (ALE)](https://github.com/w0rp/ale).
+
+### Full Support
 
 + ASM
 + Ansible
@@ -106,7 +123,8 @@ Most of the linting in Neovim Studio comes from [Asynchronous Lint Engine (ALE)]
 + YAML
 + English (see [Proselint](https://github.com/amperser/proselint))
 
-Languages with linting support in progress:
+#### Linting Support in Progress:
+
 + Crystal
 + Dockerfile
 + Elm
@@ -122,21 +140,22 @@ Languages with linting support in progress:
 + Scala
 + Verilog
 
-Languages that are supported by ALE but _not_ by Neovim Studio:
+#### Supported by ALE but _not_ by Neovim Studio:
 + FusionScript
 + Swift ([Does not support Linux _yet_](https://github.com/realm/SwiftLint/issues/732))
 
-_\* Support needs improvement_
-
 ## Goals
 
-+ Implement every feature provided by modern IDE's (minus the graphical interface [for now ;)]).
++ Implement every feature provided by modern IDE's (minus the graphical interface, for now :wink:).
 + Maintain considerable speed over modern IDE's.
 + Provide significantly larger language support than modern IDE's.
 + Implement all plugins that could be considered _ubiquitous_ by pre-existing Vim/Neovim users.
 + Favor the "common case" in controls, themes, and other configurations.
-+ To be the flagship or "go-to" IDE amongst Linux users.
++ Maintain Vim/Neovim's configurability to a reasonable extent.
++ Be easy to install so you can hit the ground running.
 
 ## Contributing
 
 ## Gallery
+
+_\* Support needs improvement or is in the process of implementation_
