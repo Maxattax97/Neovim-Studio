@@ -13,8 +13,8 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#add($NEOVIM_STUDIO_DIR . '/repos/github.com/Shougo/dein.vim')
 
 
-    " An autocompletion engine.
-    call dein#add('shuogo/deoplete.nvim')
+    " DISABLED: An autocompletion engine.
+    "call dein#add('shougo/deoplete.nvim')
 
     " Asynchronous Lint Engine.
     call dein#add('w0rp/ale')
@@ -24,8 +24,8 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#add('xuyuanp/nerdtree-git-plugin')
     call dein#add('jistr/vim-nerdtree-tabs')
 
-    " Access function tags in side-bar.
-    call dein#add('majutsushi/tagbar')
+    " DISABLED: Access function tags in side-bar.
+    "call dein#add('majutsushi/tagbar')
 
     " Integrated Git commands and change indicator.
     call dein#add('tpope/vim-fugitive')
@@ -40,8 +40,8 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     " Efficient text-alignment.
     call dein#add('godlygeek/tabular')
 
-    " Asynchronous fuzzy finder.
-    call dein#add('shougo/denite.nvim')
+    " DISABLED: Asynchronous fuzzy finder.
+    "call dein#add('shougo/denite.nvim')
     " }}}
 
 
@@ -59,10 +59,10 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#add('wokalski/autocomplete-flow')
 
     " Rust
-    call dein#add('sebastianmarkow/deoplete-rust')
+    "call dein#add('sebastianmarkow/deoplete-rust')
 
     " Python
-    call dein#add('zchee/deoplete-jedi')
+    "call dein#add('zchee/deoplete-jedi')
 
     " DISABLED: D language
     "call dein#add('landaire/deoplete-d')
@@ -78,8 +78,6 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#add('othree/html5.vim')
     call dein#add('othree/xml.vim')
     " }}}
-
-
 
     " Syntax / File Support ----------{{{
     " Syntax support for a huge number of languages.
@@ -162,7 +160,7 @@ set fileformats=unix,dos,mac
 set hidden
 
 " Attempt to fix colors and improve performance cheaply.
-set termguicolors
+" DISABLED: set termguicolors
 set lazyredraw
 
 " Faster cursorhold events and swapfile writing.
@@ -326,9 +324,9 @@ let g:signify_realtime = 1
 
 
 " SuperTab ----------{{{
-let g:SuperTabDefaultCompletionType = '<C-x><C-o>'
-let g:UltiSnipsExpandTrigger = '<C-j>'
-inoremap <expr><Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
+let g:SuperTabDefaultCompletionType = '<C-n>'
+"let g:UltiSnipsExpandTrigger = '<C-j>'
+"inoremap <expr><Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
 " }}}
 
 
@@ -408,8 +406,8 @@ endfunction
 set statusline=%{LinterStatus()}
 
 " Map Tab and Enter to autocompletion.
-inoremap <expr> <Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
-inoremap <expr> <CR>  pumvisible() ? '\<C-y>' : '\<CR>'
+"inoremap <expr> <Tab> pumvisible() ? '\<C-n>' : '\<Tab>'
+"inoremap <expr> <CR>  pumvisible() ? '\<C-y>' : '\<CR>'
 
 " Map Denite fuzzy search to act like CtrlP.
 noremap <C-p> :Denite buffer file_rec tag<CR>
@@ -434,7 +432,7 @@ augroup neovim_studio_startup
     autocmd!
     autocmd vimenter * NERDTree
     autocmd vimenter * wincmd p
-    autocmd vimenter * Tagbar
+    " DISABLED: autocmd vimenter * Tagbar
 augroup END
 
 "" Automatically install new plugins.
