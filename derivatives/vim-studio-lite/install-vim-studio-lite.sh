@@ -61,7 +61,7 @@ if [ ! -z "$(command -v curl)" ]; then
 elif [ ! -z "$(command -v wget)" ]; then
     wget https://raw.githubusercontent.com/Shougo/dein.vim/master/bin/installer.sh -O /tmp/installer.sh; check
 else
-    error "Neither wget nor curl are installed -- can not complete installation"
+    error "Neither wget nor curl are installed; can not complete installation"
     exit 1
 fi
 
@@ -72,6 +72,24 @@ else
     error "Download for Dein failed"
     exit 1
 fi
+
+if [ ! -s "$HOME/.fonts/DejaVu Sans Mono Nerd Font Complete.ttf" ]; then
+    log "Installing DejaVu Sans Mono, Nerd Font Complete ..."
+    mkdir -p "$HOME/.fonts"; check
+    cd "$HOME/.fonts"; check
+    if [ ! -z "$(command -v curl)" ]; then
+        curl -fLo "DejaVu Sans Mono Nerd Font Complete.ttf" \
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+    elif [ ! -z "$(command -v wget)" ]; then
+        wget -O "DejaVu Sans Mono Nerd Font Complete.ttf" \
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+    fi
+    fc-cache -fv; check
+    cd "$HOME"; check
+else
+    log "Nerd Font Complete is already installed; skipping ..."
+fi
+
 
 cd "$HOME" || exit
 if [ -s "$HOME/.vimrc" ]; then
