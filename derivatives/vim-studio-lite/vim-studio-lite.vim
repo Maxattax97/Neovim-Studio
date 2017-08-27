@@ -3,7 +3,7 @@ if &compatible
 endif
 
 if empty($NEOVIM_STUDIO_DIR)
-    let $NEOVIM_STUDIO_DIR='/homes/' . $USER . '/.dein'
+    let $NEOVIM_STUDIO_DIR=$HOME . '/.dein'
 endif
 
 set runtimepath+=$NEOVIM_STUDIO_DIR/repos/github.com/Shougo/dein.vim
