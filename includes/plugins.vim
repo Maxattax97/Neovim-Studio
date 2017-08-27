@@ -1,12 +1,12 @@
 " Modules ----------{{{
 " An autocompletion engine.
-call dein#add('Shougo/deoplete')
+call dein#add('shougo/deoplete.nvim')
 
 " Asynchronous Lint Engine.
 call dein#add('w0rp/ale')
 
 " Access project files in side-bar.
-call dein#add('scroolose/nerdtree')
+call dein#add('scrooloose/nerdtree')
 call dein#add('xuyuanp/nerdtree-git-plugin')
 call dein#add('jistr/vim-nerdtree-tabs')
 
@@ -21,7 +21,7 @@ call dein#add('airblade/vim-gitgutter')
 call dein#add('ervandew/supertab')
 
 " Efficient commenting.
-call dein#add('scroolose/nerdcommenter')
+call dein#add('scrooloose/nerdcommenter')
 
 " Efficient text-alignment.
 call dein#add('godlygeek/tabular')

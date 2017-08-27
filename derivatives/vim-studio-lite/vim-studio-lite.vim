@@ -12,16 +12,15 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#begin($NEOVIM_STUDIO_DIR . '/')
     call dein#add($NEOVIM_STUDIO_DIR . '/repos/github.com/Shougo/dein.vim')
 
-    call dein#add('deoplete.nvim')
 
     " An autocompletion engine.
-    call dein#add('Shougo/deoplete')
+    call dein#add('shuogo/deoplete.nvim')
 
     " Asynchronous Lint Engine.
     call dein#add('w0rp/ale')
 
     " Access project files in side-bar.
-    call dein#add('scroolose/nerdtree')
+    call dein#add('scrooloose/nerdtree')
     call dein#add('xuyuanp/nerdtree-git-plugin')
     call dein#add('jistr/vim-nerdtree-tabs')
 
@@ -36,7 +35,7 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     call dein#add('ervandew/supertab')
 
     " Efficient commenting.
-    call dein#add('scroolose/nerdcommenter')
+    call dein#add('scrooloose/nerdcommenter')
 
     " Efficient text-alignment.
     call dein#add('godlygeek/tabular')
@@ -343,7 +342,7 @@ let g:javascript_plugin_jsdoc = 1
 set guifont=DejaVuSansMono\ Nerd\ Font\ 9
 
 " Set the colorscheme to a widely preferred, beautiful _Solarized_.
-colorscheme solarized8_dark
+colorscheme Tomorrow-Night-Bright
 
 " This will repair colors in Tmux/Screen sessions.
 let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
@@ -369,7 +368,7 @@ let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 "colorscheme gruvbox
 
 " Airline
-let g:airline_theme='solarized'
+let g:airline_theme='tomorrow'
 let g:airline_solarized_bg='dark'
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
