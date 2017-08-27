@@ -1,6 +1,4 @@
 " General ----------{{{
-set nocompatible
-
 " Make controls more comfortable for line wrapping.
 set backspace=eol,start,indent
 set whichwrap+=<,>,h,l,[,]
