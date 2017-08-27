@@ -83,6 +83,9 @@ if [ ! -s "$HOME/.fonts/DejaVu Sans Mono Nerd Font Complete.ttf" ]; then
     elif [ ! -z "$(command -v wget)" ]; then
         wget -O "DejaVu Sans Mono Nerd Font Complete.ttf" \
             https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+    else
+        error "Neither wget nor curl are installed; can not complete installation"
+        exit 1
     fi
     fc-cache -fv; check
     cd "$HOME"; check
@@ -104,4 +107,7 @@ log "Installing plugins ..."
 vim +qa; check
 
 success "Installation complete for Vim Studio Lite"
-success "Execute \`vim\` to begin an epic experience"
+success "A couple of things to do before starting:"
+success "1. Use a well-developed terminal emulator like Konsole for fully-functioning themes"
+success "2. Set your terminal emulator's profile to use \"DejaVuSansMono Nerd Font Book\" or a similar Powerline font"
+success "When those are taken care of, execute \`vim\` to begin an epic experience"

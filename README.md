@@ -1,4 +1,4 @@
-# __Neovim Studio__ :black_nib:
+# __Neovim Studio__
 
 Neovim Studio is a project that seeks to turn the tried-and-true, high-efficiency text editor into a full blown IDE that
 competes with the capabilities of modern IDE's like Visual Studio without the hassle of setup and
@@ -16,7 +16,19 @@ text-editing task, and be something that I could share with my colleagues.
 
 ## Install
 
+Clone the repository:
+```
+git clone https://github.com/maxattax97/neovim-studio/
+cd neovim-studio
+```
+
+For Neovim Studio:
 `./neovim-install.sh`
+
+For Vim Studio Lite:
+`./derivatives/vim-studio-lite/install-vim-studio-lite.sh`
+
+Other versions are on the way...
 
 ## Feature Comparison
 
@@ -41,15 +53,15 @@ we have a goal to chase after.
 + Integrated Terminal
 + Supports niche/uncommon languages
 + Blazing fast load times
-+ Fuzzy finder *
++ Fuzzy finder 
 + Auto-completable snippets
 + Integrated database interface *
 + Strong Regex integration
 + Lifetime supply of macros
 + Mouse discouraged
-+ Backed by 9,700 + 23,600 stars on Github
++ Backed by 9,700 (Vim) + 23,600 (Neovim) stars on Github and 25 years of bugtesting
 + Free as in speech _and_ lunch
-+ __Highly__ configurable
++ _Highly_ configurable
 
 ### Auto-Completion Support
 
@@ -144,6 +156,8 @@ Most of the linting in Neovim Studio comes from [Asynchronous Lint Engine (ALE)]
 + FusionScript
 + Swift ([Does not support Linux _yet_](https://github.com/realm/SwiftLint/issues/732))
 
+_\* Support needs improvement or is in the process of implementation_
+
 ## Goals
 
 + Implement every feature provided by modern IDE's (minus the graphical interface, for now :wink:).
@@ -158,4 +172,3 @@ Most of the linting in Neovim Studio comes from [Asynchronous Lint Engine (ALE)]
 
 ## Gallery
 
-_\* Support needs improvement or is in the process of implementation_

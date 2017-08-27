@@ -456,7 +456,7 @@ sudo -E nvim -c "PlugInstall" -c "qa" # Some plugins require sudo privileges to 
 
 
 
-success "Installation complete"
+success "Installation complete for Neovim Studio"
 success "A couple of things to do before starting:"
 success "1. You use a well-developed terminal emulator like Konsole for fully-functioning themes"
 success "2. Set your terminal emulator's profile to use \"DejaVuSansMono Nerd Font\" or a similar Powerline font"
