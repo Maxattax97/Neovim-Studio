@@ -27,7 +27,14 @@ function! StripTrailingWhitespace()
     if &filetype =~ 'markdown\|whitespace'
         return
     endif
+
+    " Save line, column location
+    let l:line_number = line('.')
+    let l:column_number = col('.')
+
     %s/\s\+$//e
+
+    call cursor(l:line_number, l:column_number)
 endfun
 
 " Automatically strip trailing whitespace before saving.
