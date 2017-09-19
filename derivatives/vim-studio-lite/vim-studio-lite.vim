@@ -82,6 +82,7 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     " Syntax / File Support ----------{{{
     " Syntax support for a huge number of languages.
     call dein#add('sheerun/vim-polyglot')
+    call dein#add('justinmk/vim-syntax-extra')
 
     " Improved Perl support.
     call dein#add('vim-perl/vim-perl')
