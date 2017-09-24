@@ -73,26 +73,29 @@ else
     exit 1
 fi
 
-if [ ! -s "$HOME/.fonts/DejaVu Sans Mono Nerd Font Complete.ttf" ]; then
-    log "Installing DejaVu Sans Mono, Nerd Font Complete ..."
-    mkdir -p "$HOME/.fonts"; check
-    cd "$HOME/.fonts"; check
-    if [ ! -z "$(command -v curl)" ]; then
-        curl -fLo "DejaVu Sans Mono Nerd Font Complete.ttf" \
-            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
-    elif [ ! -z "$(command -v wget)" ]; then
-        wget -O "DejaVu Sans Mono Nerd Font Complete.ttf" \
-            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+if [ ! -z "$(command -v fc-cache)" ]; then
+    if [ ! -s "$HOME/.fonts/DejaVu Sans Mono Nerd Font Complete.ttf" ]; then
+        log "Installing DejaVu Sans Mono, Nerd Font Complete ..."
+        mkdir -p "$HOME/.fonts"; check
+        cd "$HOME/.fonts"; check
+        if [ ! -z "$(command -v curl)" ]; then
+            curl -fLo "DejaVu Sans Mono Nerd Font Complete.ttf" \
+                https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+        elif [ ! -z "$(command -v wget)" ]; then
+            wget -O "DejaVu Sans Mono Nerd Font Complete.ttf" \
+                https://raw.githubusercontent.com/ryanoasis/nerd-fonts/1.0.0/patched-fonts/DejaVuSansMono/Regular/complete/DejaVu%20Sans%20Mono%20Nerd%20Font%20Complete%20Mono.ttf; check
+        else
+            error "Neither wget nor curl are installed; can not complete installation"
+            exit 1
+        fi
+        fc-cache -fv; check
+        cd "$HOME"; check
     else
-        error "Neither wget nor curl are installed; can not complete installation"
-        exit 1
+        log "Nerd Font Complete is already installed; skipping ..."
     fi
-    fc-cache -fv; check
-    cd "$HOME"; check
 else
-    log "Nerd Font Complete is already installed; skipping ..."
+    log "Headless environment detected; skipping font installation ..."
 fi
-
 
 cd "$HOME" || exit
 if [ -s "$HOME/.vimrc" ]; then
