@@ -51,6 +51,10 @@ set smartcase
 set hlsearch
 set incsearch
 
+"" Folds
+set foldmethod=indent
+set foldnestmax=3
+
 "" Graphical
 " let $NVIM_TUI_ENABLE_CURSOR_SHAPE=0
 set termguicolors
@@ -58,10 +62,18 @@ set lazyredraw
 " set synmaxcol=125
 " syntax sync minlines=255
 
+map <F6> :make<CR>
+nnoremap <c-z> <nop>
+
+set directory=$NEOVIM_STUDIO_DIR/swap/
+set backupdir=$NEOVIM_STUDIO_DIR/backup/
+set undodir=$NEOVIM_STUDIO_DIR/undo/
+
 "" Additional Filetypes
 augroup neovim_studio_filetypes
     autocmd!
     autocmd BufRead,BufNewFile *.aatstest set filetype=json
+    autocmd BufRead,BufNewFile *.colortemplate set filetype=colortemplate
 augroup END
 
 "" Enable python
@@ -80,7 +92,7 @@ source $NEOVIM_STUDIO_DIR/includes/general.vim
 call plug#begin('~/.local/share/nvim/plugged')
 
 "" Add additional plugins to this file
-source $NEOVIM_STUDIO_DIR/includes/plugins.vim
+"source $NEOVIM_STUDIO_DIR/includes/plugins.vim
 
 "" Modules
 "" Eclim was manually installed.
@@ -113,8 +125,15 @@ Plug 'tpope/vim-sleuth'
 Plug 'jiangmiao/auto-pairs'
 Plug 'tpope/vim-unimpaired'
 Plug 'shougo/denite.nvim'
+Plug 'tpope/vim-abolish'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
+Plug 'autozimu/LanguageClient-neovim', {
+    \ 'branch': 'next',
+    \ 'do': 'bash install.sh',
+    \ }
 " Plug 'ctrlpvim/ctrlp.vim'
-" Plug 'mhinz/vim-signify' " Disabled, might re-enable later.
+ Plug 'mhinz/vim-signify' " Disabled, might re-enable later.
 
 "" Syntax / File Support
 Plug 'sheerun/vim-polyglot'
@@ -125,6 +144,7 @@ Plug 'vim-perl/vim-perl', { 'for': 'perl', 'do': 'make clean carp dancer highlig
 "" Autocompletion
 Plug 'zchee/deoplete-clang'
 Plug 'carlitux/deoplete-ternjs', { 'do': 'npm install -g tern' }
+Plug 'ternjs/tern_for_vim'
 Plug 'wokalski/autocomplete-flow'
 Plug 'sebastianmarkow/deoplete-rust'
 Plug 'shougo/neoinclude.vim'
@@ -223,6 +243,13 @@ let g:indent_guides_enable_on_vim_startup = 1
 let g:indent_guides_start_level = 2
 let g:indent_guides_guide_size = 1
 
+""""""""
+" GOYO "
+""""""""
+
+autocmd! User GoyoEnter Limelight
+autocmd! User GoyoLeave Limelight!
+
 """"""""""""
 " NERDTREE "
 """"""""""""
@@ -236,16 +263,21 @@ let g:deoplete#enable_at_startup = 1
 
 "" Deoplete per-autocompleter settings
 """ Clang
-source $NEOVIM_STUDIO_DIR/includes/clang.vim
+"source $NEOVIM_STUDIO_DIR/includes/clang.vim
 " let g:deoplete#sources#clang#libclang_path = '/lib/libclang.so' " '/usr/lib/i386-linux-gnu/libclang-4.0.so.1'
 " let g:deoplete#sources#clang#clang_header = '/lib/clang/4.0.0/include' " '/usr/lib/llvm-4.0/lib/clang/4.0.0/include'
 
 """ TernJS
 let g:tern_request_timeout = 1
 " let g:tern_show_signature_in_pum = '0'
+let g:deoplete#sources#ternjs#depths = 1
+let g:deoplete#sources#ternjs#types = 1
+let g:deoplete#sources#ternjs#docs = 1
+let g:tern#command = ["tern"]
+let g:tern#arguments = ["--persistent"]
 
 """ Rust
-source $NEOVIM_STUDIO_DIR/includes/rust.vim
+"source $NEOVIM_STUDIO_DIR/includes/rust.vim
 " let g:deoplete#sources#rust#racer_binary=system('echo "${HOME}/.cargo/bin/racer"')
 " let g:deoplete#sources#rust#rust_source_path=system('echo "${NEOVIM_STUDIO_DIR}/rust/src"')
 
@@ -277,6 +309,20 @@ let g:deoplete#omni#functions.html = [
 let g:deoplete#omni#functions.xml = 'xmlcomplete#CompleteTags'
 let g:deoplete#omni#functions.perl = 'perlomni#PerlComplete'
 
+""""""""""""""""""""
+" LANGUAGE SERVERS "
+""""""""""""""""""""
+
+"let g:LanguageClient_serverCommands = {
+    "\ 'rust': ['rustup', 'run', 'nightly', 'rls'],
+    "\ 'javascript.jsx': ['flow-language-server', '--stdio'],
+    "\ 'javascript': ['flow-language-server', '--stdio'],
+    "\ }
+" \ 'javascript': ['node', '/home/max/.neovim-studio/language-servers/javascript-typescript-langserver/lib/language-server-stdio'],
+"nnoremap <silent> K :call LanguageClient#textDocument_hover()<CR>
+"nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+"nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
+
 """""""
 " ALE "
 """""""
@@ -302,12 +348,15 @@ set statusline=%{LinterStatus()}
 " SIGNIFY "
 """""""""""
 " accurev
-let g:signify_vcs_list = [ 'git', 'perforce', 'hg', 'svn','bzr', 'cvs', 'darcs', 'fossil', 'hg', 'rcs', 'svn', 'tfs' ]
+" Don't do git since we have GitGutter as well.
+let g:signify_vcs_list = [ 'perforce' ] ", 'hg', 'svn','bzr', 'cvs', 'darcs', 'fossil', 'hg', 'rcs', 'svn', 'tfs' ]
+
+" Enabling realtime autosaves the buffer.
 let g:signify_realtime = 1
-" let g:signify_cursorhold_insert = 1
-" let g:signify_cursorhold_normal = 1
-" let g:signify_update_on_bufenter = 0
-" let g:signify_update_on_focusgained = 1
+"let g:signify_cursorhold_insert = 1
+"let g:signify_cursorhold_normal = 1
+"let g:signify_update_on_bufenter = 1
+"let g:signify_update_on_focusgained = 1
 
 """""""""""""
 " GITGUTTER "
@@ -318,7 +367,7 @@ set updatetime=250
 """""""""""""
 " ULTISNIPS "
 """""""""""""
-source $NEOVIM_STUDIO_DIR/includes/ultisnips.vim
+"source $NEOVIM_STUDIO_DIR/includes/ultisnips.vim
 " let g:UltiSnipsSnippetsDir = '~/.config/nvim/my-snippets'
 " let g:UltiSnipsExpandTrigger = '<tab>'
 " let g:UltiSnipsListSnippets = '<c-tab>'
@@ -367,4 +416,4 @@ augroup neovim_studio
 augroup END
 
 "" Append any other overwrites or settings here
-source $NEOVIM_STUDIO_DIR/includes/settings.vim
+"source $NEOVIM_STUDIO_DIR/includes/settings.vim
