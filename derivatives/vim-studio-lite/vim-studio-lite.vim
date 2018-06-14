@@ -40,6 +40,8 @@ if dein#load_state($NEOVIM_STUDIO_DIR . '/')
     " Efficient text-alignment.
     call dein#add('godlygeek/tabular')
 
+    call dein#add('lifepillar/vim-colortemplate')
+
     " DISABLED: Asynchronous fuzzy finder.
     "call dein#add('shougo/denite.nvim')
     " }}}
