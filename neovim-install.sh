@@ -1,4 +1,4 @@
-#!/bin/bash
+/#!/bin/bash
 
 # Feature list: https://stackoverflow.com/questions/208193/why-should-i-use-an-ide
 
@@ -25,6 +25,78 @@ WHITE='\e[1;37m'
 CLEAR='\e[0m'
 BLINK='\e[5m'
 BOLD='\e[1m'
+
+checkCount=0
+checkTotal=100
+
+check()
+{
+    code="$?"
+    checkCount=$((checkCount+=1))
+    if [ "$code" -ne 0 ]; then
+        error "Aborting: previous command failed (code ${code})"
+        exit 1
+    fi
+}
+
+success()
+{
+    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+log()
+{
+    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+warn()
+{
+    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+error()
+{
+    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
+}
+
+writeInitVimFile()
+{
+cat << EOF > "$NEOVIM_STUDIO_DIR/init.vim"
+if &compatible
+    set nocompatible
+endif
+
+set runtimepath+=$NEOVIM_STUDIO_DIR/dein/repos/github.com/Shougo/dein.vim
+
+if dein#load_state($NEOVIM_STUDIO_DIR . '/dein/')
+    call dein#begin($NEOVIM_STUDIO_DIR . '/dein/')
+    call dein#add($NEOVIM_STUDIO_DIR . '/dein/')
+
+    call dein#add('deoplete.nvim')
+
+    source $NEOVIM_STUDIO_DIR/includes/plugins.vim
+    source $NEOVIM_STUDIO_DIR/includes/custom_plugins.vim
+
+    call dein#end()
+    call dein#save_state()
+endif
+
+filetype plugin indent on
+syntax enable
+
+source $NEOVIM_STUDIO_DIR/includes/general.vim
+source $NEOVIM_STUDIO_DIR/includes/plugin_paths.vim
+source $NEOVIM_STUDIO_DIR/includes/plugin_settings.vim
+source $NEOVIM_STUDIO_DIR/includes/themes.vim
+source $NEOVIM_STUDIO_DIR/includes/autocommands.vim
+source $NEOVIM_STUDIO_DIR/includes/custom_settings.vim
+
+"" Automatically install new plugins.
+if dein#check_install()
+    call dein#install()
+endif
+EOF
+}
 
 cd "$HOME"; check # These are for safety.
 clear; clear
@@ -111,7 +183,7 @@ elif [ ! -z "$APT_GET_INSTALLED" ]; then
 
     if [ -z "$(which crystal)" ]; then
         log "Adding Crystal ..."
-        sudo apt-key adv --keyserver keys.gnupg.net --recv-keys 09617FD37CC06B54; check
+        sudo apt-key adv --keyserver sks-keyservers.net --recv-keys 09617FD37CC06B54; check
         sudo bash -c "echo \"deb https://dist.crystal-lang.org/apt crystal main\" > /etc/apt/sources.list.d/crystal.list" \
             ; check
     fi
@@ -268,7 +340,7 @@ source "${TARGET_PROFILE}"
 
 log "Locating Clang ..."
 libclangPath=$(ldconfig -p | grep -o -m 1 "/.\+clang.\+") # Don't check these; permissions errors.
-libclangIncludes=$(find / -path "*clang/*/include" 2>/dev/null | grep -m1 "clang")
+libclangIncludes=$(find / -type d \( -path /home -o -path /media -o -path /cdrom \) -prune -o -path "*clang/*/include" 2>/dev/null | grep -m1 "clang")
 
 if [ ! -z "$libclangPath" ] && [ -e "$libclangPath" ] && [ ! -z "$libclangIncludes" ] && [ -e "$libclangIncludes" ]; then
     echo "let g:deoplete#sources#clang#libclang_path = '${libclangPath}'" >> "${NEOVIM_STUDIO_DIR}/includes/plugin_paths.vim"; check
@@ -340,24 +412,27 @@ if [ ! -z "$(command -v nvm)" ]; then
     tern ember-template-lint pug-lint sass-lint typescript type-check swaglint; check
 else
     log "Using system-installed NPM ..."
-    sudo npm install -g coffeescript coffeelint csslint stylelint eslint jshint flow-remove-types flow-bin \
+    npm install -g coffeescript coffeelint csslint stylelint eslint jshint flow-remove-types flow-bin \
     jsonlint tern ember-template-lint pug-lint sass-lint typescript type-check swaglint; check
 fi
 
-log "Installing from Gem ..."
+#log "Installing from Gem ..."
 # TODO: Broken: haml_lint
-if [ ! -z "$(command -v rvm)" ]; then
-    log "Using RVM's Gem ..."
-    gem install neovim foodcritic erubi mdl puppet-lint reek rubocop slim_lint --no-user-install; check
-else
-    log "Using system-installed RVM ..."
-    sudo gem install neovim foodcritic erubi mdl puppet-lint reek rubocop slim_lint --no-user-install; check
-fi
+#if [ ! -z "$(command -v rvm)" ]; then
+#    log "Using RVM's Gem ..."
+#    gem install neovim foodcritic erubi mdl puppet-lint reek rubocop slim_lint --no-user-install; check
+#elif [ ! -z "$(command -v rbenv)" ]; then
+#    log "Using RBENV's Gem ..."
+#    gem install neovim foodcritic erubi mdl puppet-lint reek rubocop slim_lint --no-user-install; check
+#else
+#    log "Using system-installed Ruby Gems ..."
+#    sudo gem install neovim foodcritic erubi mdl puppet-lint reek rubocop slim_lint --no-user-install; check
+#fi
 
 log "Installing from Pip ..."
-sudo pip2 install neovim ansible-lint; check
-sudo pip3 install neovim flake8; check # Flake8 should safely be used on ONE version: 3.x or 2.x
-sudo pip install proselint cmakelint cython vim-vint yamllint; check
+pip2 install neovim ansible-lint; check
+pip3 install neovim flake8; check # Flake8 should safely be used on ONE version: 3.x or 2.x
+pip install proselint cmakelint cython vim-vint yamllint; check
 
 log "Installing from Go ..."
 go get -v -u github.com/golang/lint/golint; check
@@ -463,77 +538,3 @@ success "2. Set your terminal emulator's profile to use \"DejaVuSansMono Nerd Fo
 success "3. To use Neovim Studio in this shell, execute \`source ${TARGET_PROFILE}\`"
 echo ""
 success "When those are taken care of, execute \`nvim\` to begin an epic experience"
-
-
-
-checkCount=0
-checkTotal=100
-
-check()
-{
-    code="$?"
-    checkCount=$((checkCount+=1))
-    if [ "$code" -ne 0 ]; then
-        error "Aborting: previous command failed (code ${code})"
-        exit 1
-    fi
-}
-
-success()
-{
-    echo -e "${LIGHT_GREEN}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-log()
-{
-    echo -e "${LIGHT_BLUE}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-warn()
-{
-    echo -e "${YELLOW}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-error()
-{
-    echo -e "${RED}${BLINK}=(${checkCount}/${checkTotal})=[ ${*}${CLEAR}"
-}
-
-writeInitVimFile()
-{
-cat << EOF > "$NEOVIM_STUDIO_DIR/init.vim"
-if &compatible
-    set nocompatible
-endif
-
-set runtimepath+=$NEOVIM_STUDIO_DIR/dein/repos/github.com/Shougo/dein.vim
-
-if dein#load_state($NEOVIM_STUDIO_DIR . '/dein/')
-    call dein#begin($NEOVIM_STUDIO_DIR . '/dein/')
-    call dein#add($NEOVIM_STUDIO_DIR . '/dein/')
-
-    call dein#add('deoplete.nvim')
-
-    source $NEOVIM_STUDIO_DIR/includes/plugins.vim
-    source $NEOVIM_STUDIO_DIR/includes/custom_plugins.vim
-
-    call dein#end()
-    call dein#save_state()
-endif
-
-filetype plugin indent on
-syntax enable
-
-source $NEOVIM_STUDIO_DIR/includes/general.vim
-source $NEOVIM_STUDIO_DIR/includes/plugin_paths.vim
-source $NEOVIM_STUDIO_DIR/includes/plugin_settings.vim
-source $NEOVIM_STUDIO_DIR/includes/themes.vim
-source $NEOVIM_STUDIO_DIR/includes/autocommands.vim
-source $NEOVIM_STUDIO_DIR/includes/custom_settings.vim
-
-"" Automatically install new plugins.
-if dein#check_install()
-    call dein#install()
-endif
-EOF
-}
