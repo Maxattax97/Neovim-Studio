@@ -345,6 +345,8 @@ set guifont=DejaVuSansMono\ Nerd\ Font\ 9
 " Set the colorscheme to a widely preferred, beautiful _Solarized_.
 colorscheme Tomorrow-Night-Bright
 
+hi Normal guibg=NONE ctermbg=NONE
+
 " This will repair colors in Tmux/Screen sessions.
 "let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
 "let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
