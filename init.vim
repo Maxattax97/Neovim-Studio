@@ -155,6 +155,7 @@ Plug 'othree/csscomplete.vim'
 Plug 'othree/html5.vim'
 Plug 'othree/xml.vim'
 Plug 'c9s/perlomni.vim'
+"Plug 'cquery-project/cquery'
 " Plug 'artur-shaik/vim-javacomplete2'
 " Plug 'tweekmonster/deoplete-clang2'
 
@@ -343,6 +344,9 @@ function! LinterStatus() abort
 endfunction
 
 set statusline=%{LinterStatus()}
+
+"nmap <silent> <leader>e <Plug>(ale_next_wrap)
+"nmap <silent> <leader>q <Plug>(ale_previous_wrap)
 
 """""""""""
 " SIGNIFY "
