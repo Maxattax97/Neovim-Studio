@@ -240,7 +240,11 @@ set hlsearch
 set incsearch
 
 " Use the system clipboard.
-set clipboard+=unnamedplus
+set clipboard=unnamedplus
+
+" Read vim options and set them on load (e.g. for filetypes).
+set modeline
+set modelines=3
 " }}}
 
 " Deoplete ----------{{{
