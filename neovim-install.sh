@@ -434,9 +434,10 @@ pip2 install neovim ansible-lint; check
 pip3 install neovim flake8; check # Flake8 should safely be used on ONE version: 3.x or 2.x
 pip install proselint cmakelint cython vim-vint yamllint; check
 
-log "Installing from Go ..."
-go get -v -u github.com/golang/lint/golint; check
-go get -v -u github.com/alecthomas/gometalinter; check # Unstable version
+# Giving me some issues recently 08/13/18
+#log "Installing from Go ..."
+#go get -v -u github.com/golang/lint/golint; check
+#go get -v -u github.com/alecthomas/gometalinter; check # Unstable version
 
 # Haskell stuff sucks.
 # log "Installing from Cabal ..."
